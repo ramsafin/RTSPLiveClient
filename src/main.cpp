@@ -27,8 +27,10 @@ int main() {
     avformat_network_init();
 
     auto formatCtx = avformat_alloc_context();
+    AVDictionary *opts = nullptr;
+    av_dict_set(&opts, "rtsp_transport", "udp_multicast", 0);
 
-    int statCode = avformat_open_input(&formatCtx, "rtsp://localhost:8554/camera", nullptr, nullptr);
+    int statCode = avformat_open_input(&formatCtx, "rtsp://localhost:8554/camera", nullptr, &opts);
     assert(statCode >= 0);
 
     statCode = avformat_find_stream_info(formatCtx, nullptr);
