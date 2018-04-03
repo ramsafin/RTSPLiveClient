@@ -28,7 +28,7 @@ int main() {
 
     auto formatCtx = avformat_alloc_context();
     AVDictionary *opts = nullptr;
-    av_dict_set(&opts, "rtsp_transport", "udp_multicast", 0);
+//    av_dict_set(&opts, "rtsp_transport", "udp", 0);
 
     int statCode = avformat_open_input(&formatCtx, "rtsp://localhost:8554/camera", nullptr, &opts);
     assert(statCode >= 0);
@@ -36,16 +36,16 @@ int main() {
     statCode = avformat_find_stream_info(formatCtx, nullptr);
     assert(statCode >= 0);
 
-    av_dump_format(formatCtx, 0, "rtsp://localhost:8554/camera", 0);
+    av_dump_format(formatCtx, 0, "camera", 0);
 
-    AVCodec* codec = nullptr;
+    AVCodec *codec = nullptr;
     int videoStreamIdx = av_find_best_stream(formatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
     assert(videoStreamIdx >= 0);
     assert(codec);
 
-    AVStream* videoStream = formatCtx->streams[videoStreamIdx];
+    AVStream *videoStream = formatCtx->streams[videoStreamIdx];
 
-    AVCodecContext* codecContext = avcodec_alloc_context3(codec);
+    AVCodecContext *codecContext = avcodec_alloc_context3(codec);
     assert(codecContext);
 
     statCode = avcodec_parameters_to_context(codecContext, videoStream->codecpar);
@@ -53,22 +53,21 @@ int main() {
 
     statCode = avcodec_open2(codecContext, codec, nullptr);
 
-    AVPacket* packet = av_packet_alloc();
+    AVPacket *packet = av_packet_alloc();
     av_init_packet(packet);
 
-    AVFrame* encodedFrame = av_frame_alloc();
+    AVFrame *encodedFrame = av_frame_alloc();
 
-
-    AVFrame* bgrFrame = av_frame_alloc();
-    bgrFrame->width = 640;
-    bgrFrame->height = 480;
+    AVFrame *bgrFrame = av_frame_alloc();
+    bgrFrame->width = videoStream->codecpar->width;
+    bgrFrame->height = videoStream->codecpar->height;
     bgrFrame->format = AV_PIX_FMT_BGR24;
     av_frame_get_buffer(bgrFrame, 0);
 
-    auto converter = sws_getCachedContext(nullptr, 640, 480,
-                                          AV_PIX_FMT_YUV420P, 640,
-                                          480, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR,
-                                          nullptr, nullptr, nullptr);
+    auto converter = sws_getCachedContext(nullptr,
+                                          bgrFrame->width, bgrFrame->height, AV_PIX_FMT_YUV420P,
+                                          bgrFrame->width, bgrFrame->height, AV_PIX_FMT_BGR24,
+                                          SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
 
     cv::namedWindow("Video Stream");
 
@@ -81,13 +80,13 @@ int main() {
             if (decode(codecContext, encodedFrame, packet)) {
 
                 sws_scale(converter, reinterpret_cast<const uint8_t *const *>(encodedFrame->data),
-                encodedFrame->linesize, 0, 480, bgrFrame->data, bgrFrame->linesize);
+                          encodedFrame->linesize, 0, bgrFrame->height, bgrFrame->data, bgrFrame->linesize);
 
-                cv::Mat bgr(480, 640, CV_8UC3, bgrFrame->data[0]);
+                cv::Mat bgr(bgrFrame->height, bgrFrame->width, CV_8UC3, bgrFrame->data[0]);
 
                 cv::imshow("Video Stream", bgr);
 
-                if (cv::waitKey(10) != -1) {
+                if (cv::waitKey(1) != -1) {
                     break;
                 }
             }
