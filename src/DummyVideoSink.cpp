@@ -1,20 +1,7 @@
 #include "DummyVideoSink.hpp"
-#include <H265VideoStreamFramer.hh>
-#include <assert.h>
-
-#ifdef __cplusplus
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavdevice/avdevice.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/pixdesc.h>
-#include <libavfilter/avfiltergraph.h>
-#include <libavfilter/buffersink.h>
-#include <libavfilter/buffersrc.h>
-}
-#endif
+#include <cassert>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 DummySink *DummySink::createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId) {
     return new DummySink(env, subsession, streamId);
@@ -24,12 +11,17 @@ DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char co
         : MediaSink(env), fSubsession(subsession) {
     fStreamId = strDup(streamId);
     fReceiveBuffer = new u_int8_t[DUMMY_SINK_RECEIVE_BUFFER_SIZE];
+    memset(fReceiveBuffer, 0, DUMMY_SINK_RECEIVE_BUFFER_SIZE);
     initFFmpeg();
 }
 
 DummySink::~DummySink() {
     delete[] fReceiveBuffer;
     delete[] fStreamId;
+
+    avcodec_close(codecContext);
+    av_frame_free(&frame);
+    av_packet_free(&packet);
 }
 
 void DummySink::afterGettingFrame(void *clientData, unsigned frameSize, unsigned numTruncatedBytes,
@@ -40,27 +32,31 @@ void DummySink::afterGettingFrame(void *clientData, unsigned frameSize, unsigned
 
 void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes, timeval presentationTime) {
 
-    /*
-    if (fStreamId != nullptr) envir() << "Stream \"" << fStreamId << "\"; ";
+    // fixme: add start code to fReceiveBuffer
+    uint8_t start_code[4] = {0x0, 0x0, 0x0, 0x1};
+    packet->size = frameSize + 4;
+    uint8_t buf[frameSize + 4];
+    memcpy(buf, start_code, 4);
+    memcpy(buf + 4, fReceiveBuffer, frameSize);
+    packet->data = buf;
 
-    envir() << fSubsession.mediumName() << "/" << fSubsession.codecName() << ":\tReceived " << frameSize << " bytes";
-
-    if (numTruncatedBytes > 0) envir() << " (with " << numTruncatedBytes << " bytes truncated)";
-
-    char uSecsStr[6 + 1]; // used to output the 'microseconds' part of the presentation time
-
-    sprintf(uSecsStr, "%06u", (unsigned) presentationTime.tv_usec);
-
-    envir() << ".\tPresentation time: " << (int) presentationTime.tv_sec << "." << uSecsStr;
-
-    if (fSubsession.rtpSource() != nullptr && !fSubsession.rtpSource()->hasBeenSynchronizedUsingRTCP()) {
-        envir() << "!"; // mark the debugging output to indicate that this presentation time is not RTCP-synchronized
+    if (avcodec_send_packet(codecContext, packet) != 0) {
+        envir() << "Error while send packet to decoder" << "\n";
     }
 
-    envir() << "\tNPT: " << fSubsession.getNormalPlayTime(presentationTime) << "\n";
+    if (avcodec_receive_frame(codecContext, frame) == 0) {
 
-     */
+        // todo
+        cv::Mat rgb;
+        cv::Mat raw(frame->height, frame->width, CV_8UC2, frame->data[0]);
+        cv::cvtColor(raw, rgb, CV_YUV2BGR);
 
+        cv::imshow("IMG", rgb);
+
+        if (cv::waitKey(1) != -1) {
+            exit(0);
+        }
+    }
 
     // Then continue, to request the next frame of data:
     continuePlaying();
@@ -71,7 +67,7 @@ Boolean DummySink::continuePlaying() {
     if (fSource == nullptr) return False; // sanity check (should not happen)
 
     // Request the next frame of data from our input source.  "afterGettingFrame()" will get called later, when it arrives:
-    fSource->getNextFrame(reinterpret_cast<unsigned char *>(fReceiveBuffer), DUMMY_SINK_RECEIVE_BUFFER_SIZE,
+    fSource->getNextFrame(fReceiveBuffer, DUMMY_SINK_RECEIVE_BUFFER_SIZE,
                           afterGettingFrame, this,
                           onSourceClosure, this);
     return True;
@@ -79,18 +75,21 @@ Boolean DummySink::continuePlaying() {
 
 void DummySink::initFFmpeg() {
 
-    av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_level(AV_LOG_WARNING);
 
     av_register_all();
     avcodec_register_all();
-    avformat_network_init();
 
-    auto formatCtx = avformat_alloc_context();
+    auto codec  = avcodec_find_decoder(AV_CODEC_ID_HEVC);
+    assert(codec);
 
-    auto inputFormat = av_find_input_format("rtsp");
+    codecContext = avcodec_alloc_context3(codec);
+    assert(codecContext);
 
-    int statCode = avformat_open_input(&formatCtx, "rtsp://localhost:8554/camera", inputFormat, nullptr);
-    assert(statCode >= 0);
+    avcodec_open2(codecContext, codec, nullptr);
 
+    packet = av_packet_alloc();
+    av_init_packet(packet);
 
+    frame = av_frame_alloc();
 }

@@ -3,7 +3,21 @@
 
 #include <liveMedia.hh>
 
-#define DUMMY_SINK_RECEIVE_BUFFER_SIZE 100000
+#ifdef __cplusplus
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
+#include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/pixdesc.h>
+#include <libavfilter/avfiltergraph.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+}
+#endif
+
+#define DUMMY_SINK_RECEIVE_BUFFER_SIZE 30000
 
 class DummySink : public MediaSink {
 public:
@@ -29,7 +43,9 @@ private:
     char *fStreamId;
 
     // ffmpeg
-
+    AVPacket* packet = nullptr;
+    AVFrame* frame = nullptr;
+    AVCodecContext* codecContext = nullptr;
 
     Boolean continuePlaying() override;
 
