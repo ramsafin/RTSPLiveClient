@@ -6,7 +6,7 @@
 #include "HEVCRTSPClient.hpp"
 
 // RTSP 'response handlers':
-void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *resultString);
+void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *sdp);
 
 void continueAfterSETUP(RTSPClient *rtspClient, int resultCode, char *resultString);
 

@@ -14,6 +14,7 @@ DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char co
 }
 
 DummySink::~DummySink() {
+
     delete[] fReceiveBuffer;
     delete[] fStreamId;
 
@@ -24,8 +25,7 @@ DummySink::~DummySink() {
 
 void DummySink::afterGettingFrame(void *clientData, unsigned frameSize, unsigned numTruncatedBytes,
                                   timeval presentationTime, unsigned durationInMicroseconds) {
-    auto sink = (DummySink *) clientData;
-    sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
+    ((DummySink *) clientData)->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
 }
 
 void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes, timeval presentationTime) {
@@ -57,9 +57,11 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
         SDL_UnlockMutex(playContext.mutex);
     }
 
+    // fixme: check if memory leak occurs
     av_packet_unref(packet);
 
     SDL_PollEvent(&playContext.event);
+
     switch (playContext.event.type) {
         case SDL_QUIT:
             SDL_Quit();
@@ -68,7 +70,7 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
             break;
     }
 
-    // Then continue, to request the next frame of data:
+    // Then continue, to request the next frame of data
     continuePlaying();
 }
 

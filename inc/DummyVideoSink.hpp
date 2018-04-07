@@ -22,7 +22,7 @@ extern "C" {
 }
 #endif
 
-#define DUMMY_SINK_RECEIVE_BUFFER_SIZE 30000
+#define DUMMY_SINK_RECEIVE_BUFFER_SIZE 100000
 
 class DummySink : public MediaSink {
 public:
