@@ -14,6 +14,11 @@ extern "C" {
 #include <libavfilter/avfiltergraph.h>
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
+#include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_video.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_mutex.h>
+#include <SDL2/SDL.h>
 }
 #endif
 
@@ -46,6 +51,15 @@ private:
     AVPacket* packet = nullptr;
     AVFrame* frame = nullptr;
     AVCodecContext* codecContext = nullptr;
+
+    // SDL
+    struct PlayContext {
+        SDL_Renderer *renderer;
+        SDL_Texture *texture;
+        SDL_mutex *mutex;
+        SDL_Window *window;
+        SDL_Event event;
+    } playContext;
 
     Boolean continuePlaying() override;
 

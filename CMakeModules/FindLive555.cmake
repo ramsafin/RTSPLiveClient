@@ -1,3 +1,4 @@
+# live555 must be on the /usr/lib/live
 set(Live555_SRC_DIR /usr/lib/live)
 set(Live555_LIBRARIES "")
 set(Live555_INCLUDE_DIRS "")
