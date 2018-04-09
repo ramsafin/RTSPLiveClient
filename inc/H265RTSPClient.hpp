@@ -1,5 +1,5 @@
-#ifndef LIVERTSPCLIENT_HEVCRTSPCLIENT_HPP
-#define LIVERTSPCLIENT_HEVCRTSPCLIENT_HPP
+#ifndef H265_RTSP_CLIENT_HPP
+#define H265_RTSP_CLIENT_HPP
 
 #include <liveMedia.hh>
 #include "StreamClientState.hpp"
@@ -21,4 +21,4 @@ public:
     StreamClientState scs;
 };
 
-#endif //LIVERTSPCLIENT_HEVCRTSPCLIENT_HPP
+#endif //H265_RTSP_CLIENT_HPP

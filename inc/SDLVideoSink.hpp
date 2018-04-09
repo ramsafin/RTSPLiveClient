@@ -1,5 +1,5 @@
-#ifndef LIVERTSPCLIENT_DUMMYVIDEOSINK_HPP
-#define LIVERTSPCLIENT_DUMMYVIDEOSINK_HPP
+#ifndef SDL_VIDEO_SINK_HPP
+#define SDL_VIDEO_SINK_HPP
 
 #include <liveMedia.hh>
 
@@ -23,17 +23,17 @@ extern "C" {
 #endif
 
 
-class DummySink : public MediaSink {
+class SDLVideoSink : public MediaSink {
 public:
 
     constexpr static unsigned RECEIVE_BUFFER_SIZE = 100 * 1000;
 
-    static DummySink *createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId = nullptr);
+    static SDLVideoSink *createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId = nullptr);
 
 private:
-    DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId);
+    SDLVideoSink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId);
 
-    ~DummySink() override;
+    ~SDLVideoSink() override;
 
     static void afterGettingFrame(void *clientData, unsigned frameSize,
                                   unsigned numTruncatedBytes,
@@ -68,4 +68,4 @@ private:
 };
 
 
-#endif //LIVERTSPCLIENT_DUMMYVIDEOSINK_HPP
+#endif //SDL_VIDEO_SINK_HPP

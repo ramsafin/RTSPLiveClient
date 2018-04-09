@@ -1,11 +1,11 @@
 #include "SDLVideoSink.hpp"
 #include <cassert>
 
-DummySink *DummySink::createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId) {
-    return new DummySink(env, subsession, streamId);
+SDLVideoSink *SDLVideoSink::createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId) {
+    return new SDLVideoSink(env, subsession, streamId);
 }
 
-DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId)
+SDLVideoSink::SDLVideoSink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId)
         : MediaSink(env), fSubsession(subsession) {
     fStreamId = strDup(streamId);
     fReceiveBuffer = new u_int8_t[RECEIVE_BUFFER_SIZE];
@@ -13,7 +13,7 @@ DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char co
     initFFmpeg();
 }
 
-DummySink::~DummySink() {
+SDLVideoSink::~SDLVideoSink() {
 
     delete[] fReceiveBuffer;
     delete[] fStreamId;
@@ -23,12 +23,12 @@ DummySink::~DummySink() {
     av_packet_free(&packet);
 }
 
-void DummySink::afterGettingFrame(void *clientData, unsigned frameSize, unsigned numTruncatedBytes,
+void SDLVideoSink::afterGettingFrame(void *clientData, unsigned frameSize, unsigned numTruncatedBytes,
                                   timeval presentationTime, unsigned durationInMicroseconds) {
-    ((DummySink *) clientData)->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
+    ((SDLVideoSink *) clientData)->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
 }
 
-void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes, timeval presentationTime) {
+void SDLVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes, timeval presentationTime) {
 
     int startCodeLength = 4;
     uint8_t start_code[4] = {0x0, 0x0, 0x0, 0x1};
@@ -74,7 +74,7 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
     continuePlaying();
 }
 
-Boolean DummySink::continuePlaying() {
+Boolean SDLVideoSink::continuePlaying() {
 
     if (fSource == nullptr) return False; // sanity check (should not happen)
 
@@ -85,7 +85,7 @@ Boolean DummySink::continuePlaying() {
     return True;
 }
 
-void DummySink::initFFmpeg() {
+void SDLVideoSink::initFFmpeg() {
 
     av_log_set_level(AV_LOG_WARNING);
 

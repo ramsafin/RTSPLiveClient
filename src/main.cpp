@@ -48,7 +48,6 @@ int main(int argc, char **argv) {
     UsageEnvironment *env = BasicUsageEnvironment::createNew(*scheduler);
 
     openURL(*env, "first camera", "rtsp://localhost:8554/camera");
-//    openURL(*env, "second camera", "rtsp://localhost:8554/camera_2");
 
     // All subsequent activity takes place within the event loop:
     env->taskScheduler().doEventLoop(&eventLoopWatchVariable);
@@ -187,7 +186,7 @@ void continueAfterSETUP(RTSPClient *rtspClient, int resultCode, char *resultStri
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = DummySink::createNew(env, *scs.subsession, rtspClient->url());
+        scs.subsession->sink = SDLVideoSink::createNew(env, *scs.subsession, rtspClient->url());
         // perhaps use your own custom "MediaSink" subclass instead
 
         if (scs.subsession->sink == nullptr) {
