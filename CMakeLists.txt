@@ -14,8 +14,8 @@ find_package(OpenCV 3 REQUIRED)
 # executables
 include_directories("inc")
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp src/DummyVideoSink.cpp
-        src/StreamClientState.cpp src/HEVCRTSPClient.cpp)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp src/SDLVideoSink.cpp
+        src/StreamClientState.cpp src/H265RTSPClient.cpp)
 
 # FFmpeg
 if (FFMPEG_FOUND)
@@ -47,4 +47,15 @@ else(Live555_FOUND)
     message(FATAL_ERROR "Can't find Live555 libraries")
 endif(Live555_FOUND)
 
+# OpenCV
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+
+# SDL
+# Install libsdl2-dev and libsdl2-image-dev
+INCLUDE(FindPkgConfig)
+
+PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
+PKG_SEARCH_MODULE(SDL2IMAGE REQUIRED SDL2_image>=2.0.0)
+
+INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS} ${SDL2IMAGE_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${SDL2_LIBRARIES} ${SDL2IMAGE_LIBRARIES})
