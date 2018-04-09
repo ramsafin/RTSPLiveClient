@@ -14,8 +14,8 @@ find_package(OpenCV 3 REQUIRED)
 # executables
 include_directories("inc")
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp src/DummyVideoSink.cpp
-        src/StreamClientState.cpp src/HEVCRTSPClient.cpp)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp src/SDLVideoSink.cpp
+        src/StreamClientState.cpp src/H265RTSPClient.cpp)
 
 # FFmpeg
 if (FFMPEG_FOUND)

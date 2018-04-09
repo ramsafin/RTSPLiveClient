@@ -1,9 +1,9 @@
 #include <GroupsockHelper.hh>
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
-#include "DummyVideoSink.hpp"
+#include "SDLVideoSink.hpp"
 #include "StreamClientState.hpp"
-#include "HEVCRTSPClient.hpp"
+#include "H265RTSPClient.hpp"
 
 // RTSP 'response handlers':
 void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *sdp);
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 
 void openURL(UsageEnvironment &env, char const *progName, char const *rtspURL) {
 
-    RTSPClient *rtspClient = HEVCRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName);
+    RTSPClient *rtspClient = H265RTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName);
 
     if (rtspClient == nullptr) {
         env << "Failed to create a RTSP client for URL \"" << rtspURL << "\": " << env.getResultMsg() << "\n";
@@ -85,7 +85,7 @@ void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *sdp) {
 
     do {
         UsageEnvironment &env = rtspClient->envir(); // alias
-        StreamClientState &scs = ((HEVCRTSPClient *) rtspClient)->scs; // alias
+        StreamClientState &scs = ((H265RTSPClient *) rtspClient)->scs; // alias
 
         if (resultCode != 0) {
             env << *rtspClient << "Failed to get an SDP description: " << sdp << "\n";
@@ -129,7 +129,7 @@ void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *sdp) {
 void setupNextSubsession(RTSPClient *rtspClient) {
 
     UsageEnvironment &env = rtspClient->envir(); // alias
-    StreamClientState &scs = ((HEVCRTSPClient *) rtspClient)->scs; // alias
+    StreamClientState &scs = ((H265RTSPClient *) rtspClient)->scs; // alias
 
     scs.subsession = scs.iter->next();
 
@@ -167,7 +167,7 @@ void setupNextSubsession(RTSPClient *rtspClient) {
 void continueAfterSETUP(RTSPClient *rtspClient, int resultCode, char *resultString) {
     do {
         UsageEnvironment &env = rtspClient->envir(); // alias
-        StreamClientState &scs = ((HEVCRTSPClient *) rtspClient)->scs; // alias
+        StreamClientState &scs = ((H265RTSPClient *) rtspClient)->scs; // alias
 
         if (resultCode != 0) {
             env << *rtspClient << "Failed to set up the \"" << *scs.subsession << "\" subsession: " << resultString
@@ -217,7 +217,7 @@ void continueAfterPLAY(RTSPClient *rtspClient, int resultCode, char *resultStrin
 
     do {
         UsageEnvironment &env = rtspClient->envir(); // alias
-        StreamClientState &scs = ((HEVCRTSPClient *) rtspClient)->scs; // alias
+        StreamClientState &scs = ((H265RTSPClient *) rtspClient)->scs; // alias
 
         if (resultCode != 0) {
             env << *rtspClient << "Failed to start playing session: " << resultString << "\n";
@@ -273,7 +273,7 @@ void subsessionByeHandler(void *clientData) {
 void shutdownStream(RTSPClient *rtspClient, int exitCode) {
 
     UsageEnvironment &env = rtspClient->envir(); // alias
-    StreamClientState &scs = ((HEVCRTSPClient *) rtspClient)->scs; // alias
+    StreamClientState &scs = ((H265RTSPClient *) rtspClient)->scs; // alias
 
     // First, check whether any subsessions have still to be closed:
     if (scs.session != nullptr) {

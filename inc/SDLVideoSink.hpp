@@ -22,10 +22,11 @@ extern "C" {
 }
 #endif
 
-#define DUMMY_SINK_RECEIVE_BUFFER_SIZE 100000
 
 class DummySink : public MediaSink {
 public:
+
+    constexpr static unsigned RECEIVE_BUFFER_SIZE = 100 * 1000;
 
     static DummySink *createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId = nullptr);
 

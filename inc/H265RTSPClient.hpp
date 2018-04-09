@@ -5,17 +5,17 @@
 #include "StreamClientState.hpp"
 
 
-class HEVCRTSPClient : public RTSPClient {
+class H265RTSPClient : public RTSPClient {
 public:
-    static HEVCRTSPClient *createNew(UsageEnvironment &env, char const *rtspURL, int verbosityLevel = 0,
+    static H265RTSPClient *createNew(UsageEnvironment &env, char const *rtspURL, int verbosityLevel = 0,
                                     char const *applicationName = nullptr, portNumBits tunnelOverHTTPPortNum = 0);
 
 protected:
 
-    HEVCRTSPClient(UsageEnvironment &env, char const *rtspURL, int verbosityLevel, char const *applicationName,
+    H265RTSPClient(UsageEnvironment &env, char const *rtspURL, int verbosityLevel, char const *applicationName,
                   portNumBits tunnelOverHTTPPortNum);
 
-    ~HEVCRTSPClient() override;
+    ~H265RTSPClient() override;
 
 public:
     StreamClientState scs;

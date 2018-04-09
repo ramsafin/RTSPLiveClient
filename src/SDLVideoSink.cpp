@@ -1,4 +1,4 @@
-#include "DummyVideoSink.hpp"
+#include "SDLVideoSink.hpp"
 #include <cassert>
 
 DummySink *DummySink::createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId) {
@@ -8,8 +8,8 @@ DummySink *DummySink::createNew(UsageEnvironment &env, MediaSubsession &subsessi
 DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId)
         : MediaSink(env), fSubsession(subsession) {
     fStreamId = strDup(streamId);
-    fReceiveBuffer = new u_int8_t[DUMMY_SINK_RECEIVE_BUFFER_SIZE];
-    memset(fReceiveBuffer, 0, DUMMY_SINK_RECEIVE_BUFFER_SIZE);
+    fReceiveBuffer = new u_int8_t[RECEIVE_BUFFER_SIZE];
+    memset(fReceiveBuffer, 0, RECEIVE_BUFFER_SIZE);
     initFFmpeg();
 }
 
@@ -79,7 +79,7 @@ Boolean DummySink::continuePlaying() {
     if (fSource == nullptr) return False; // sanity check (should not happen)
 
     // Request the next frame of data from our input source.  "afterGettingFrame()" will get called later, when it arrives:
-    fSource->getNextFrame(fReceiveBuffer, DUMMY_SINK_RECEIVE_BUFFER_SIZE,
+    fSource->getNextFrame(fReceiveBuffer, RECEIVE_BUFFER_SIZE,
                           afterGettingFrame, this,
                           onSourceClosure, this);
     return True;
@@ -112,6 +112,7 @@ void DummySink::initFFmpeg() {
 
     playContext = {nullptr};
 
+    // TODO: get width and height of frames from the SDP
     playContext.window = SDL_CreateWindow("SDL YUV Player", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
 
     playContext.renderer = SDL_CreateRenderer(playContext.window, -1, 0);
